@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+<body>
+
+    <input type="text" id="email">
+    <button id="myBtn1">Send</button>
+    <h1>Welcome to my website's world</h1>
+    <p>
+        latitude: <span id="latitude"></span> &deg; </br>
+        latitude: <span id="longitude"></span> &deg;
+    </p>
+    <input type="text" id="mood">
+    <button id="myBtn">Send</button>
+    <script>
+        let lon, lat;
+        const btn = document.getElementById("myBtn");
+
+        btn.addEventListener("click", async event => {
+            let mood = document.getElementById("mood").value;
+            const data = {lon, lat, mood};
+            console.log(data)
+            const options = {
+                method: 'POST',
+                headers: {
+                    'Content-Type': "application/json"
+                },
+                body: JSON.stringify(data)
+            };
+
+            const response = await fetch('/api', options);
+            const json = await response.json();
+            console.log(json)
+            document.getElementById("mood").value = ''
+        })
+        if('geolocation' in navigator)
+        {
+            console.log("geolocation avaiable")
+            navigator.geolocation.getCurrentPosition(async position => {
+                lat = position.coords.latitude;
+                lon = position.coords.longitude;
+                document.getElementById("latitude").textContent = lat;
+                document.getElementById("longitude").textContent = lon;
+
+            });
+        }
+        else {
+            console.log("geolocation is not available")
+        }
+        btn2 = document.getElementById("myBtn1");
+        btn2.addEventListener("click", async event => {
+            let email = document.getElementById("email").value;
+            const msgg = {email};
+            const options = {
+                method: 'POST',
+                headers: {
+                    'Content-Type': "application/json"
+                },
+                body: JSON.stringify(msgg)
+            };
+            const response = await fetch('/sendgrid', options);
+            const json = await response.json();
+            console.log(json)
+        })
+    </script>
+</body>
+</html>
