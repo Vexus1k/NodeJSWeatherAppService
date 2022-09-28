@@ -8,7 +8,7 @@ const db = mysql.createConnection({
     host: 'localhost',
     user: 'root',
     password: '',
-    database: 'mysqldb'
+    database: 'dasdasdas'
 
 })
 db.connect(err => {
@@ -43,52 +43,12 @@ app.use( function (req, res, next) {
     //Off preflight request.
     res.setHeader('Access-Control-Max-Age', '600')
 
-    // Pass to next layer of middleware
     next();
 }, bodyParser.json());
 app.use(express.static('public'));
 app.use(express.json({ limit: '10mb' }));
-// Add headers before the routes are defined
 
-const databaseUsers = new Datastore('database-users.db');
-databaseUsers.loadDatabase();
-const databaseMails = new Datastore('database-mails.db');
-databaseMails.loadDatabase();
 
-const actuallyWeather = {
-    method: 'GET',
-    url: 'https://community-open-weather-map.p.rapidapi.com/weather',
-    params: {
-        q: 'Katowice',
-        lat: '0',
-        lon: '0',
-        callback: 'test',
-        id: '2172797',
-        lang: 'null',
-        units: 'imperial',
-        mode: 'xml'
-    },
-    headers: {
-        'X-RapidAPI-Key': '7a4b69ea60mshf55991720679310p173af5jsn3000998c21f7',
-        'X-RapidAPI-Host': 'community-open-weather-map.p.rapidapi.com'
-    }
-};
-const thirtyDaysWeather = {
-    method: 'GET',
-    url: 'https://community-open-weather-map.p.rapidapi.com/climate/month',
-    params: {q: 'Katowice'},
-    headers: {
-        'X-RapidAPI-Key': '7a4b69ea60mshf55991720679310p173af5jsn3000998c21f7',
-        'X-RapidAPI-Host': 'community-open-weather-map.p.rapidapi.com'
-    }
-};
-const fiveDaysForecastData = {  method: 'GET',
-    url: 'https://community-open-weather-map.p.rapidapi.com/forecast',
-    params: {q: 'Katowice'},
-    headers: {
-        'X-RapidAPI-Key': '7a4b69ea60mshf55991720679310p173af5jsn3000998c21f7',
-        'X-RapidAPI-Host': 'community-open-weather-map.p.rapidapi.com'
-    }}
 app.post('/getHourlyWeatherInfo', (request, response ) => {
     console.log(request.body.id, "chuj")
     const options = {
@@ -397,8 +357,8 @@ app.post('/sendgrid', (request, response) => {
         to: `${email}`, // Change to your recipient
         from: 'biombox@interia.pl', // Change to your verified sender
         subject: 'My Weather App Newsletter Info',
-        text: 'and easy to do anywhere, even with Node.js',
-        html: '<strong>and easy to do anywhere, even with Node.js</strong>',
+        text: 'Design of newsletter is keep working',
+        html: '<strong>We keep working for newsletter mail design. Have a nice day;)</strong>',
     }
     sgMail
         .send(msg)
