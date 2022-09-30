@@ -8,8 +8,7 @@ const db = mysql.createConnection({
     host: 'localhost',
     user: 'root',
     password: '',
-    database: 'dasdasdas'
-
+    database: 'mysqldb'
 })
 db.connect(err => {
     if(err){
@@ -79,6 +78,7 @@ app.post('/getHourlyWeatherInfo', (request, response ) => {
         response.json(result)
     })
 })
+
 app.post('/getAdvancedWeatherInfo', (request, response ) => {
     console.log(request.body.id, "chuj")
     const options = {
@@ -101,6 +101,7 @@ app.post('/getAdvancedWeatherInfo', (request, response ) => {
         response.json(result)
     })
 })
+
 app.post('/getGeneralWeatherInfo', (request, response ) => {
     console.log(request.body.id, "chuj")
     const options = {
@@ -123,6 +124,7 @@ app.post('/getGeneralWeatherInfo', (request, response ) => {
         response.json(result)
     })
 })
+
 app.post('/getCityFromCoords', (request, response) => {
     const options = {
         method: 'GET',
@@ -138,6 +140,7 @@ app.post('/getCityFromCoords', (request, response) => {
         response.json(result)
     })
 })
+
 app.post('/getLocationId', (request, response ) => {
     console.log(request.body.city, "2")
     const options = {
@@ -159,6 +162,7 @@ app.post('/getLocationId', (request, response ) => {
         response.json(result)
     })
 })
+
 app.post('/checkUsernameExistInAllDbs', (request, response ) => {
     let username = request.body.username
     let sql = `SELECT EXISTS(SELECT * FROM users WHERE username = "${username}" LIMIT 0,1)`
@@ -199,6 +203,7 @@ app.post('/checkUsernameExistInAllDbs', (request, response ) => {
         }
     })
 })
+
 app.post('/checkUserExistInFacebookDb', (request, response ) => {
     let email = request.body.email
     let sql = `SELECT EXISTS(SELECT * FROM users_facebook WHERE email = "${email}" LIMIT 0,1)`
@@ -223,6 +228,7 @@ app.post('/checkUserExistInFacebookDb', (request, response ) => {
         }
     })
 })
+
 app.post('/checkUserExistInGoogleDb', (request, response ) => {
     let email = request.body.email
     let sql = `SELECT EXISTS(SELECT * FROM users_google WHERE email = "${email}" LIMIT 0,1)`
@@ -246,6 +252,7 @@ app.post('/checkUserExistInGoogleDb', (request, response ) => {
         }
     })
 })
+
 app.post('/addUserToFacebookDb', (request, response ) => {
     console.log(request.body, "2")
     let user = request.body
@@ -259,6 +266,7 @@ app.post('/addUserToFacebookDb', (request, response ) => {
         response.json(user)
     })
 })
+
 app.post('/addUserToGoogleDb', (request, response ) => {
     console.log(request.body, "2")
     let user = request.body
@@ -271,6 +279,7 @@ app.post('/addUserToGoogleDb', (request, response ) => {
         response.json(user)
     })
 })
+
 app.post('/changeUsername', (request, response ) => {
     let username = request.body.username
     let oldUsername = request.body.oldUsername
@@ -285,19 +294,47 @@ app.post('/changeUsername', (request, response ) => {
         console.log("Username updated successfully")
     })
 })
+
 app.post('/changePassword', (request, response ) => {
     let username = request.body.username
     let password = request.body.password
-    console.log(username, password)
-    let sql = `UPDATE users SET password="${password}" WHERE username = "${username}";`
+    let sql = `SELECT password FROM users WHERE username = "${username}"`
     db.query(sql, function(err, result) {
-        if(err) {
+        if (err) {
             throw err
         }
-        response.json({condition: true})
-        console.log("Password has changed successfully")
+        const res = Object.values(JSON.parse(JSON.stringify(result)));
+        let queryResult = Object.values(res[0])[0];
+        if(queryResult === password){
+            response.json({ message: "Cannot change for actually account password." })
+            console.log("Cannot change for actually account password.")
+        }
+        else {
+            let sql = `SELECT EXISTS(SELECT * FROM users WHERE username = "${username}")`
+            db.query(sql, function(err, result) {
+                if (err) {
+                    throw err
+                }
+                const res = Object.values(JSON.parse(JSON.stringify(result)));
+                let queryResult = Object.values(res[0])[0];
+                if (queryResult === 1) {
+                    let sql = `UPDATE users SET password="${password}" WHERE username = "${username}";`
+                    db.query(sql, function (err, result) {
+                        if (err) {
+                            throw err
+                        }
+                        response.json({condition: true})
+                        console.log("Password has changed successfully")
+                    })
+                } else {
+                    response.json({condition: false})
+                    console.log("Cannot change password user does not exist.")
+                }
+            })
+        }
     })
 })
+
 app.post('/loginUser', (request, response ) => {
     let user = request.body
     let sql = `SELECT EXISTS(SELECT * FROM users WHERE username = "${user.username}" AND password = "${user.password}" LIMIT 0,1)`
@@ -318,31 +355,33 @@ app.post('/loginUser', (request, response ) => {
         }
     })
 })
+
 app.post('/registerUser', (request, response) => {
     let user = request.body
     let sql = `SELECT EXISTS(SELECT * FROM users WHERE username = "${user.username}" OR email = "${user.email}")`
     db.query(sql, function(err, result) {
-        if(err) {
+        if (err) {
             throw err
         }
-        // console.log(Object.values(JSON.parse(JSON.stringify(result)))[0].constructor.name, fields)
         const res = Object.values(JSON.parse(JSON.stringify(result)));
         let queryResult = Object.values(res[0])[0];
-        if(queryResult === 0){
+        if (queryResult === 0) {
             let sql = `INSERT INTO users (username ,email, password) VALUES ("${user.username}","${user.email}", "${user.password}")`
             db.query(sql, err => {
                 if(err) {
                     throw err
                 }
                 console.log('User was added to database.')
-                response.json(user)
+                response.json(true)
             })
         }
         else{
-            response.status(409).send();
+            response.json(false)
+            console.log("Cannot registry user.")
         }
     })
 })
+
 app.post('/sendgrid', (request, response) => {
     console.log(request.body.email)
     let email = request.body.email
