@@ -63,7 +63,7 @@ app.post('/getHourlyWeatherInfo', (request, response ) => {
             history: '0'
         },
         headers: {
-            'X-RapidAPI-Key': '9b4b75c0cfmsh491193c70f6ebf2p1c8211jsn4e60f1866731',
+            'X-RapidAPI-Key': '4fe511d018msh4a3820679157ba8p13b0b2jsn118fe25ac9f7',
             'X-RapidAPI-Host': 'foreca-weather.p.rapidapi.com'
         }
     };
@@ -86,7 +86,7 @@ app.post('/getAdvancedWeatherInfo', (request, response ) => {
         url: `https://foreca-weather.p.rapidapi.com/forecast/daily/${request.body.id}`,
         params: {alt: '0', tempunit: 'C', windunit: 'KMH', periods: '12', dataset: 'full'},
         headers: {
-            'X-RapidAPI-Key': '9b4b75c0cfmsh491193c70f6ebf2p1c8211jsn4e60f1866731',
+            'X-RapidAPI-Key': '4fe511d018msh4a3820679157ba8p13b0b2jsn118fe25ac9f7',
             'X-RapidAPI-Host': 'foreca-weather.p.rapidapi.com'
         }
     };
@@ -109,7 +109,7 @@ app.post('/getGeneralWeatherInfo', (request, response ) => {
         url: `https://foreca-weather.p.rapidapi.com/current/${request.body.id}`,
         params: {alt: '0', tempunit: 'C', windunit: 'KMH', tz: 'Europe/London', lang: 'en'},
         headers: {
-            'X-RapidAPI-Key': '9b4b75c0cfmsh491193c70f6ebf2p1c8211jsn4e60f1866731',
+            'X-RapidAPI-Key': '4fe511d018msh4a3820679157ba8p13b0b2jsn118fe25ac9f7',
             'X-RapidAPI-Host': 'foreca-weather.p.rapidapi.com'
         }
     };
@@ -147,7 +147,7 @@ app.post('/getLocationId', (request, response ) => {
         method: 'GET',
         url: `https://foreca-weather.p.rapidapi.com/location/search/${request.body.city}`,
         headers: {
-            'X-RapidAPI-Key': '9b4b75c0cfmsh491193c70f6ebf2p1c8211jsn4e60f1866731',
+            'X-RapidAPI-Key': '4fe511d018msh4a3820679157ba8p13b0b2jsn118fe25ac9f7',
             'X-RapidAPI-Host': 'foreca-weather.p.rapidapi.com'
         }
     };
