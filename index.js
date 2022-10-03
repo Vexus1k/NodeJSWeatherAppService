@@ -3,7 +3,6 @@ const Datastore = require('nedb')
 const axios = require("axios");
 const mysql = require('mysql');
 require("dotenv").config()
-console.log(process.env)
 
 //Create connection
 const db = mysql.createConnection({
@@ -82,7 +81,6 @@ app.post('/getHourlyWeatherInfo', (request, response ) => {
 })
 
 app.post('/getAdvancedWeatherInfo', (request, response ) => {
-    console.log(request.body.id, "chuj")
     const options = {
         method: 'GET',
         url: `https://foreca-weather.p.rapidapi.com/forecast/daily/${request.body.id}`,
@@ -105,7 +103,6 @@ app.post('/getAdvancedWeatherInfo', (request, response ) => {
 })
 
 app.post('/getGeneralWeatherInfo', (request, response ) => {
-    console.log(request.body.id)
     const options = {
         method: 'GET',
         url: `https://foreca-weather.p.rapidapi.com/current/${request.body.id}`,
@@ -411,10 +408,3 @@ app.post('/sendgrid', (request, response) => {
         })
     response.json(msg);
 });
-
-app.get('/sendgridd', (request, response) => {
-    console.log(process.env.API_KEY, process.env.SENDGRID_API_KEY)
-
-});
-
-
