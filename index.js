@@ -49,7 +49,7 @@ app.use(express.json({ limit: '10mb' }));
 
 
 app.post('/getHourlyWeatherInfo', (request, response ) => {
-    console.log(request.body.id, "chuj")
+    console.log(request.body.id)
     const options = {
         method: 'GET',
         url: `https://foreca-weather.p.rapidapi.com/forecast/hourly/${request.body.id}`,
