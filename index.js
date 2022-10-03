@@ -2,6 +2,8 @@ const express = require('express');
 const Datastore = require('nedb')
 const axios = require("axios");
 const mysql = require('mysql');
+require("dotenv").config()
+console.log(process.env)
 
 //Create connection
 const db = mysql.createConnection({
@@ -63,7 +65,7 @@ app.post('/getHourlyWeatherInfo', (request, response ) => {
             history: '0'
         },
         headers: {
-            'X-RapidAPI-Key': '4fe511d018msh4a3820679157ba8p13b0b2jsn118fe25ac9f7',
+            'X-RapidAPI-Key': process.env.API_KEY,
             'X-RapidAPI-Host': 'foreca-weather.p.rapidapi.com'
         }
     };
@@ -86,7 +88,7 @@ app.post('/getAdvancedWeatherInfo', (request, response ) => {
         url: `https://foreca-weather.p.rapidapi.com/forecast/daily/${request.body.id}`,
         params: {alt: '0', tempunit: 'C', windunit: 'KMH', periods: '12', dataset: 'full'},
         headers: {
-            'X-RapidAPI-Key': '4fe511d018msh4a3820679157ba8p13b0b2jsn118fe25ac9f7',
+            'X-RapidAPI-Key': process.env.API_KEY,
             'X-RapidAPI-Host': 'foreca-weather.p.rapidapi.com'
         }
     };
@@ -103,13 +105,13 @@ app.post('/getAdvancedWeatherInfo', (request, response ) => {
 })
 
 app.post('/getGeneralWeatherInfo', (request, response ) => {
-    console.log(request.body.id, "chuj")
+    console.log(request.body.id)
     const options = {
         method: 'GET',
         url: `https://foreca-weather.p.rapidapi.com/current/${request.body.id}`,
         params: {alt: '0', tempunit: 'C', windunit: 'KMH', tz: 'Europe/London', lang: 'en'},
         headers: {
-            'X-RapidAPI-Key': '4fe511d018msh4a3820679157ba8p13b0b2jsn118fe25ac9f7',
+            'X-RapidAPI-Key': process.env.API_KEY,
             'X-RapidAPI-Host': 'foreca-weather.p.rapidapi.com'
         }
     };
@@ -142,12 +144,12 @@ app.post('/getCityFromCoords', (request, response) => {
 })
 
 app.post('/getLocationId', (request, response ) => {
-    console.log(request.body.city, "2")
+    console.log(request.body.city)
     const options = {
         method: 'GET',
         url: `https://foreca-weather.p.rapidapi.com/location/search/${request.body.city}`,
         headers: {
-            'X-RapidAPI-Key': '4fe511d018msh4a3820679157ba8p13b0b2jsn118fe25ac9f7',
+            'X-RapidAPI-Key': process.env.API_KEY,
             'X-RapidAPI-Host': 'foreca-weather.p.rapidapi.com'
         }
     };
@@ -254,7 +256,7 @@ app.post('/checkUserExistInGoogleDb', (request, response ) => {
 })
 
 app.post('/addUserToFacebookDb', (request, response ) => {
-    console.log(request.body, "2")
+    console.log(request.body)
     let user = request.body
     let sql = `INSERT INTO users_facebook (userId, username, email, firstName, lastName) VALUES ("${user.userId}",
     "${user.username}", "${user.email}", "${user.firstName}","${user.lastName}")`
@@ -268,7 +270,7 @@ app.post('/addUserToFacebookDb', (request, response ) => {
 })
 
 app.post('/addUserToGoogleDb', (request, response ) => {
-    console.log(request.body, "2")
+    console.log(request.body)
     let user = request.body
     let sql = `INSERT INTO users_google (email, username) VALUES ("${user.email}","${user.username}")`
     db.query(sql, function(err, result) {
@@ -408,6 +410,11 @@ app.post('/sendgrid', (request, response) => {
             console.error(error)
         })
     response.json(msg);
+});
+
+app.get('/sendgridd', (request, response) => {
+    console.log(process.env.API_KEY, process.env.SENDGRID_API_KEY)
+
 });
 
 
