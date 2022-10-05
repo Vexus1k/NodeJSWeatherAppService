@@ -1,29 +1,12 @@
 const express = require('express');
-const Datastore = require('nedb')
-const axios = require("axios");
-const mysql = require('mysql');
 require("dotenv").config()
-
-//Create connection
-const db = mysql.createConnection({
-    host: 'localhost',
-    user: 'root',
-    password: '',
-    database: 'mysqldb'
-})
-db.connect(err => {
-    if(err){
-        throw err
-    }
-    console.log('MySQL connected')
-})
 const app = express();
-
 const bodyParser = require('body-parser')
-
-
-const sgMail = require('@sendgrid/mail');
-sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+const {loginUser, registerUser, changePassword, changeUsername, addUserToGoogleDb, addUserToFacebookDb, checkUserExistInGoogleDb,
+    checkUserExistInFacebookDb, checkUsernameExistInAllDbs
+} = require("./user-module");
+const {getLocationId, getCityFromCoords, getGeneralWeatherInfo, getAdvancedWeatherInfo, getHourlyWeatherInfo} = require("./weather-module")
+const {sendgrid} = require("./mail-module");
 
 app.listen(3000, ()=> console.log("listening in 3000"));
 
@@ -50,361 +33,61 @@ app.use(express.json({ limit: '10mb' }));
 
 
 app.post('/getHourlyWeatherInfo', (request, response ) => {
-    console.log(request.body.id)
-    const options = {
-        method: 'GET',
-        url: `https://foreca-weather.p.rapidapi.com/forecast/hourly/${request.body.id}`,
-        params: {
-            alt: '0',
-            tempunit: 'C',
-            windunit: 'MS',
-            tz: 'Europe/London',
-            periods: '8',
-            dataset: 'full',
-            history: '0'
-        },
-        headers: {
-            'X-RapidAPI-Key': process.env.API_KEY,
-            'X-RapidAPI-Host': 'foreca-weather.p.rapidapi.com'
-        }
-    };
-    console.log('Got request from hourly weather info');
-    let data = axios.request(options).then(function (response) {
-        return response.data;
-    }).catch(function (error) {
-        console.error(error);
-    });
-    data.then(function(result) {
-        console.log(result)
-        response.json(result)
-    })
+    getHourlyWeatherInfo(request.body, response)
 })
 
 app.post('/getAdvancedWeatherInfo', (request, response ) => {
-    const options = {
-        method: 'GET',
-        url: `https://foreca-weather.p.rapidapi.com/forecast/daily/${request.body.id}`,
-        params: {alt: '0', tempunit: 'C', windunit: 'KMH', periods: '12', dataset: 'full'},
-        headers: {
-            'X-RapidAPI-Key': process.env.API_KEY,
-            'X-RapidAPI-Host': 'foreca-weather.p.rapidapi.com'
-        }
-    };
-    console.log('Got request for advanced weather info');
-    let data = axios.request(options).then(function (response) {
-        return response.data;
-    }).catch(function (error) {
-        console.error(error);
-    });
-    data.then(function(result) {
-        console.log(result)
-        response.json(result)
-    })
+    getAdvancedWeatherInfo(request.body, response)
 })
 
 app.post('/getGeneralWeatherInfo', (request, response ) => {
-    const options = {
-        method: 'GET',
-        url: `https://foreca-weather.p.rapidapi.com/current/${request.body.id}`,
-        params: {alt: '0', tempunit: 'C', windunit: 'KMH', tz: 'Europe/London', lang: 'en'},
-        headers: {
-            'X-RapidAPI-Key': process.env.API_KEY,
-            'X-RapidAPI-Host': 'foreca-weather.p.rapidapi.com'
-        }
-    };
-    console.log('Got request for general weather info');
-    let data = axios.request(options).then(function (response) {
-        return response.data;
-    }).catch(function (error) {
-        console.error(error);
-    });
-    data.then(function(result) {
-        console.log(result)
-        response.json(result)
-    })
+    getGeneralWeatherInfo(request.body, response)
 })
 
 app.post('/getCityFromCoords', (request, response) => {
-    const options = {
-        method: 'GET',
-        url: `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${request.lat}&longitude=${request.lon}&localityLanguage=en`,
-    };
-    let data = axios.request(options).then(function (response) {
-        return response.data;
-    }).catch(function (error) {
-        console.error(error);
-    });
-    data.then(function(result) {
-        console.log(result)
-        response.json(result)
-    })
+    getCityFromCoords(request, response)
 })
 
 app.post('/getLocationId', (request, response ) => {
-    console.log(request.body.city)
-    const options = {
-        method: 'GET',
-        url: `https://foreca-weather.p.rapidapi.com/location/search/${request.body.city}`,
-        headers: {
-            'X-RapidAPI-Key': process.env.API_KEY,
-            'X-RapidAPI-Host': 'foreca-weather.p.rapidapi.com'
-        }
-    };
-
-    let data = axios.request(options).then(function (response) {
-        return response.data;
-    }).catch(function (error) {
-        console.error(error);
-    });
-    data.then(function(result) {
-        console.log(result)
-        response.json(result)
-    })
+    getLocationId(request.body, response)
 })
 
 app.post('/checkUsernameExistInAllDbs', (request, response ) => {
-    let username = request.body.username
-    let sql = `SELECT EXISTS(SELECT * FROM users WHERE username = "${username}" LIMIT 0,1)`
-    db.query(sql, function(err, result) {
-        const res = Object.values(JSON.parse(JSON.stringify(result)));
-        let queryResult = Object.values(res[0])[0];
-        console.log(queryResult)
-        if(queryResult === 0){
-            let sql = `SELECT EXISTS(SELECT * FROM users_facebook WHERE username = "${username}" LIMIT 0,1)`
-            db.query(sql, function(err, result) {
-                const res = Object.values(JSON.parse(JSON.stringify(result)));
-                let queryResult = Object.values(res[0])[0];
-                console.log(queryResult)
-                if(queryResult === 0){
-                    let sql = `SELECT EXISTS(SELECT * FROM users_google WHERE username = "${username}" LIMIT 0,1)`
-                    db.query(sql, function(err, result) {
-                        const res = Object.values(JSON.parse(JSON.stringify(result)));
-                        let queryResult = Object.values(res[0])[0];
-                        if(queryResult === 0){
-                            response.json(true)
-                            console.log("Username does not exist in any database.")
-                        }
-                        else{
-                            console.log("Username exist in some database.")
-                            response.json(false)
-                        }
-                    })
-                }
-                else{
-                    console.log("Username exist in some database.")
-                    response.json(false)
-                }
-            })
-        }
-        else{
-            console.log("Username exist in some database.")
-            response.json(false)
-        }
-    })
+    checkUsernameExistInAllDbs(request.body, response)
 })
 
 app.post('/checkUserExistInFacebookDb', (request, response ) => {
-    let email = request.body.email
-    let sql = `SELECT EXISTS(SELECT * FROM users_facebook WHERE email = "${email}" LIMIT 0,1)`
-    db.query(sql, function(err, result) {
-        const res = Object.values(JSON.parse(JSON.stringify(result)));
-        let queryResult = Object.values(res[0])[0];
-        console.log(queryResult)
-        if(queryResult === 0){
-            console.log("Username does not exist in facebook Db.")
-            response.json({condition: false})
-        }
-        else{
-            let sql = `SELECT username FROM users_facebook WHERE email = "${email}"`
-            db.query(sql, function(err, result) {
-                const res = Object.values(JSON.parse(JSON.stringify(result)));
-                let queryResult = Object.values(res[0])[0];
-
-                response.json({condition: true, username: queryResult})
-            })
-            console.log("User exist in facebook Db.")
-
-        }
-    })
+    checkUserExistInFacebookDb(request.body, response)
 })
 
 app.post('/checkUserExistInGoogleDb', (request, response ) => {
-    let email = request.body.email
-    let sql = `SELECT EXISTS(SELECT * FROM users_google WHERE email = "${email}" LIMIT 0,1)`
-    db.query(sql, function(err, result) {
-        const res = Object.values(JSON.parse(JSON.stringify(result)));
-        let queryResult = Object.values(res[0])[0];
-        console.log(queryResult)
-        if(queryResult === 0){
-            console.log("Username does not exist in google Db.")
-            response.json({condition: false})
-        }
-        else{
-            let sql = `SELECT username FROM users_google WHERE email = "${email}"`
-            db.query(sql, function(err, result) {
-                const res = Object.values(JSON.parse(JSON.stringify(result)));
-                let queryResult = Object.values(res[0])[0];
-                response.json({condition: true, username: queryResult})
-                console.log({condition: true, username: queryResult})
-            })
-            console.log("User exist in google Db.")
-        }
-    })
+    checkUserExistInGoogleDb(request.body, response)
 })
 
 app.post('/addUserToFacebookDb', (request, response ) => {
-    console.log(request.body)
-    let user = request.body
-    let sql = `INSERT INTO users_facebook (userId, username, email, firstName, lastName) VALUES ("${user.userId}",
-    "${user.username}", "${user.email}", "${user.firstName}","${user.lastName}")`
-    db.query(sql, function(err, result) {
-        if(err) {
-            throw err
-        }
-        console.log('User was added to facebook database.')
-        response.json(user)
-    })
+    addUserToFacebookDb(request.body, response)
 })
 
 app.post('/addUserToGoogleDb', (request, response ) => {
-    console.log(request.body)
-    let user = request.body
-    let sql = `INSERT INTO users_google (email, username) VALUES ("${user.email}","${user.username}")`
-    db.query(sql, function(err, result) {
-        if(err) {
-            throw err
-        }
-        console.log('User was added to google database.')
-        response.json(user)
-    })
+    addUserToGoogleDb(request.body, response)
 })
 
 app.post('/changeUsername', (request, response ) => {
-    let username = request.body.username
-    let oldUsername = request.body.oldUsername
-    let database = request.body.database
-    console.log(username, oldUsername)
-    let sql = `UPDATE ${database} SET username="${username}" WHERE username = "${oldUsername}";`
-    db.query(sql, function(err, result) {
-        if(err) {
-            throw err
-        }
-        response.json({condition: true})
-        console.log("Username updated successfully")
-    })
+    changeUsername(request.body, response)
 })
 
 app.post('/changePassword', (request, response ) => {
-    let username = request.body.username
-    let password = request.body.password
-    let sql = `SELECT password FROM users WHERE username = "${username}"`
-    db.query(sql, function(err, result) {
-        if (err) {
-            throw err
-        }
-        const res = Object.values(JSON.parse(JSON.stringify(result)));
-        let queryResult = Object.values(res[0])[0];
-        if(queryResult === password){
-            response.json({ message: "Cannot change for actually account password." })
-            console.log("Cannot change for actually account password.")
-        }
-        else {
-            let sql = `SELECT EXISTS(SELECT * FROM users WHERE username = "${username}")`
-            db.query(sql, function(err, result) {
-                if (err) {
-                    throw err
-                }
-                const res = Object.values(JSON.parse(JSON.stringify(result)));
-                let queryResult = Object.values(res[0])[0];
-                if (queryResult === 1) {
-                    let sql = `UPDATE users SET password="${password}" WHERE username = "${username}";`
-                    db.query(sql, function (err, result) {
-                        if (err) {
-                            throw err
-                        }
-                        response.json({condition: true})
-                        console.log("Password has changed successfully")
-                    })
-                } else {
-                    response.json({condition: false})
-                    console.log("Cannot change password user does not exist.")
-                }
-            })
-        }
-    })
+    changePassword(request.body, response)
 })
 
 app.post('/loginUser', (request, response ) => {
-    let user = request.body
-    let sql = `SELECT EXISTS(SELECT * FROM users WHERE username = "${user.username}" AND password = "${user.password}" LIMIT 0,1)`
-    db.query(sql, function(err, result) {
-        if(err) {
-            throw err
-        }
-        const res = Object.values(JSON.parse(JSON.stringify(result)));
-        let queryResult = Object.values(res[0])[0];
-        console.log(queryResult)
-        if(queryResult === 1){
-            console.log("Login successfully.")
-            response.json(user)
-        }
-        else{
-            console.log("Login failed.")
-            response.status(401).send();
-        }
-    })
+    loginUser(request.body, response)
 })
 
 app.post('/registerUser', (request, response) => {
-    let user = request.body
-    let sql = `SELECT EXISTS(SELECT * FROM users WHERE username = "${user.username}" OR email = "${user.email}")`
-    db.query(sql, function(err, result) {
-        if (err) {
-            throw err
-        }
-        const res = Object.values(JSON.parse(JSON.stringify(result)));
-        let queryResult = Object.values(res[0])[0];
-        if (queryResult === 0) {
-            let sql = `INSERT INTO users (username ,email, password) VALUES ("${user.username}","${user.email}", "${user.password}")`
-            db.query(sql, err => {
-                if(err) {
-                    throw err
-                }
-                console.log('User was added to database.')
-                response.json(true)
-            })
-        }
-        else{
-            response.json(false)
-            console.log("Cannot registry user.")
-        }
-    })
+    registerUser(request.body, response)
 })
 
 app.post('/sendgrid', (request, response) => {
-    console.log(request.body.email)
-    let email = request.body.email
-    let sql = `INSERT INTO newsletter_mails (email) VALUES ("${email}")`
-    db.query(sql, err => {
-        if(err) {
-            throw err
-        }
-        console.log('Newsletter email was successfully added to database.')
-    })
-    let msg = {
-        to: `${email}`, // Change to your recipient
-        from: 'biombox@interia.pl', // Change to your verified sender
-        subject: 'My Weather App Newsletter Info',
-        text: 'Design of newsletter is keep working',
-        html: '<strong>We keep working for newsletter mail design. Have a nice day;)</strong>',
-    }
-    sgMail
-        .send(msg)
-        .then(() => {
-            console.log('Email sent')
-        })
-        .catch((error) => {
-            console.error(error)
-        })
-    response.json(msg);
+    sendgrid(request.body, response)
 });
