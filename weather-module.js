@@ -1,12 +1,12 @@
 const axios = require("axios");
-
+const WEATHER_KEY = process.env.WEATHER_KEY
 function getLocationId(body, response){
     console.log(body.city)
     const options = {
         method: 'GET',
-        url: `https://foreca-weather.p.rapidapi.com/location/search/${body.city}`,
+        url: `https://foreca-weather.p.rapidapi.com/location/search/${body.city.normalize("NFD").replace(/[\u0300-\u036f]/g, "")}`,
         headers: {
-            'X-RapidAPI-Key': process.env.API_KEY,
+            'X-RapidAPI-Key': WEATHER_KEY,
             'X-RapidAPI-Host': 'foreca-weather.p.rapidapi.com'
         }
     };
@@ -46,7 +46,7 @@ function getGeneralWeatherInfo(body, response){
         url: `https://foreca-weather.p.rapidapi.com/current/${body.id}`,
         params: {alt: '0', tempunit: 'C', windunit: 'KMH', tz: 'Europe/London', lang: 'en'},
         headers: {
-            'X-RapidAPI-Key': process.env.API_KEY,
+            'X-RapidAPI-Key': WEATHER_KEY,
             'X-RapidAPI-Host': 'foreca-weather.p.rapidapi.com'
         }
     };
@@ -69,7 +69,7 @@ function getAdvancedWeatherInfo(body, response){
         url: `https://foreca-weather.p.rapidapi.com/forecast/daily/${body.id}`,
         params: {alt: '0', tempunit: 'C', windunit: 'KMH', periods: '12', dataset: 'full'},
         headers: {
-            'X-RapidAPI-Key': process.env.API_KEY,
+            'X-RapidAPI-Key': WEATHER_KEY,
             'X-RapidAPI-Host': 'foreca-weather.p.rapidapi.com'
         }
     };
@@ -100,7 +100,7 @@ function getHourlyWeatherInfo(body, response){
             history: '0'
         },
         headers: {
-            'X-RapidAPI-Key': process.env.API_KEY,
+            'X-RapidAPI-Key': WEATHER_KEY,
             'X-RapidAPI-Host': 'foreca-weather.p.rapidapi.com'
         }
     };

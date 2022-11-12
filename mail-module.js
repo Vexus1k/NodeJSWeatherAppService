@@ -13,7 +13,7 @@ db.connect(err => {
     }
     console.log('MySQL connected')
 })
-sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+sgMail.setApiKey(process.env.SENDGRID_KEY);
 function sendgrid(body, response){
     let email = body.email
     let sql = `INSERT INTO newsletter_mails (email) VALUES ("${email}")`

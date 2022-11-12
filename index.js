@@ -9,7 +9,6 @@ const {getLocationId, getCityFromCoords, getGeneralWeatherInfo, getAdvancedWeath
 const {sendgrid} = require("./mail-module");
 
 app.listen(3000, ()=> console.log("listening in 3000"));
-
 app.use( function (req, res, next) {
     // Website you wish to allow to connect
     res.setHeader('Access-Control-Allow-Origin', 'http://localhost:4200');
