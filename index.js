@@ -4,32 +4,22 @@ const app = express();
 const bodyParser = require('body-parser')
 const {loginUser, registerUser, changePassword, changeUsername, addUserToGoogleDb, addUserToFacebookDb, checkUserExistInGoogleDb,
     checkUserExistInFacebookDb, checkUsernameExistInAllDbs
-} = require("./user-module");
-const {getLocationId, getCityFromCoords, getGeneralWeatherInfo, getAdvancedWeatherInfo, getHourlyWeatherInfo} = require("./weather-module")
-const {sendgrid} = require("./mail-module");
+} = require("./login-module");
+const {getLocationId, getCityFromCoords, getGeneralWeatherInfo, getAdvancedWeatherInfo, getHourlyWeatherInfo} = require("./weather-info-module")
+const {sendgrid} = require("./email-send-module");
 
 app.listen(3000, ()=> console.log("listening in 3000"));
+
 app.use( function (req, res, next) {
-    // Website you wish to allow to connect
     res.setHeader('Access-Control-Allow-Origin', 'http://localhost:4200');
-
-    // Request methods you wish to allow
     res.setHeader('Access-Control-Allow-Methods', '*');
-
-    // Request headers you wish to allow
     res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,Content-Type');
-
-    // Set to true if you need the website to include cookies in the requests sent
-    // to the API (e.g. in case you use sessions)
     res.setHeader('Access-Control-Allow-Credentials', true);
-    //Off preflight request.
     res.setHeader('Access-Control-Max-Age', '600')
-
     next();
 }, bodyParser.json());
 app.use(express.static('public'));
 app.use(express.json({ limit: '10mb' }));
-
 
 app.post('/getHourlyWeatherInfo', (request, response ) => {
     getHourlyWeatherInfo(request.body, response)
